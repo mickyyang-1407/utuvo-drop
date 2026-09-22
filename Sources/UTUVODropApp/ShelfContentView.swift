@@ -1,0 +1,312 @@
+import AppKit
+import QuartzCore
+import UTUVODropCore
+
+/// A pet-sized native drop destination with an on-demand file list.
+final class ShelfContentView: NSView, NSDraggingSource {
+    let viewModel: ShelfViewModel
+    let cat = CatPetView(frame: .zero)
+    let tail = TailPeekView(frame: .zero)
+    private let card = ThoughtBubbleView(frame: .zero)
+    private let thoughtTrail = ThoughtTrailView(frame: .zero)
+    private let cardContent = FlippedView()
+    private let titleLabel = NSTextField(labelWithString: "In my belly")
+    private let emptyLabel = NSTextField(wrappingLabelWithString: "Drop files on the cat.\nI'll keep them handy for you.")
+    private let footerLabel = NSTextField(labelWithString: "Originals stay right where they are.")
+    private let scroll = NSScrollView()
+    private let document = FlippedView()
+    let closeButton = NSButton(title: "", target: nil, action: nil)
+    let dragAllHandle = ShelfDragHandle()
+    let clearButton = NSButton(title: "清空", target: nil, action: nil)
+    private(set) var rowsByURL: [URL: ShelfItemRow] = [:]
+    private(set) var isExpanded = false
+    private(set) var isRevealed = false
+    private(set) var incoming = false
+    private(set) var outgoing = false
+    private(set) var errorMessage: String?
+    private(set) var outgoingURLs: [URL] = []
+    private var tracking: NSTrackingArea?
+    private var hideTask: Task<Void, Never>?
+    var onSizeChanged: (() -> Void)?
+    var petOnLeft = false {
+        didSet { tail.isOnLeft = petOnLeft; needsLayout = true }
+    }
+    var startSession: (([NSDraggingItem], NSEvent) -> Void)?
+
+    init(viewModel: ShelfViewModel) {
+        self.viewModel = viewModel
+        super.init(frame: NSRect(x: 0, y: 0, width: ShelfLayout.collapsedWidth, height: ShelfLayout.collapsedHeight))
+        wantsLayer = true
+        autoresizingMask = [.width, .height]
+        card.addSubview(cardContent); cardContent.autoresizingMask = [.width, .height]
+        titleLabel.font = .systemFont(ofSize: 14, weight: .semibold)
+        clearButton.bezelStyle = .rounded; clearButton.controlSize = .small
+        clearButton.target = self; clearButton.action = #selector(clearShelf)
+        clearButton.toolTip = "Clear the list. Original files stay in place."
+        clearButton.setAccessibilityLabel("Clear shelf; keep original files")
+        emptyLabel.font = .systemFont(ofSize: 13); emptyLabel.alignment = .center
+        footerLabel.font = .systemFont(ofSize: 11); footerLabel.alignment = .center
+        footerLabel.lineBreakMode = .byTruncatingTail
+        scroll.drawsBackground = false; scroll.hasVerticalScroller = true
+        scroll.autohidesScrollers = true; scroll.scrollerStyle = .overlay; scroll.documentView = document
+        closeButton.isBordered = false
+        closeButton.image = NSImage(systemSymbolName: "xmark.circle.fill", accessibilityDescription: nil)
+        closeButton.symbolConfiguration = .init(pointSize: 17, weight: .regular)
+        closeButton.contentTintColor = .tertiaryLabelColor
+        closeButton.target = self; closeButton.action = #selector(toggleDetails)
+        closeButton.toolTip = "收起想法"
+        closeButton.setAccessibilityLabel("關閉檔案清單")
+        cat.onClick = { [weak self] in self?.toggleDetails() }
+        cat.onDragRequested = { [weak self] event in
+            guard let self else { return }
+            self.beginDrag(for: self.viewModel.allItems.map(\.url), event: event)
+        }
+        dragAllHandle.onDragRequested = cat.onDragRequested
+        tail.onClick = cat.onClick
+        tail.onDragRequested = cat.onDragRequested
+        cat.layer?.opacity = 0
+        cat.interactionEnabled = false
+        cat.setAccessibilityHidden(true)
+        [titleLabel, closeButton, clearButton, emptyLabel, scroll, footerLabel, dragAllHandle].forEach { cardContent.addSubview($0) }
+        [card, thoughtTrail, cat, tail].forEach { addSubview($0) }
+        registerForDraggedTypes([.fileURL]); setAccessibilityLabel("UTUVO Drop file cat")
+        reload()
+    }
+    required init?(coder: NSCoder) { fatalError("not used") }
+    override var isFlipped: Bool { true }
+    override var mouseDownCanMoveWindow: Bool { false }
+    override func updateTrackingAreas() {
+        super.updateTrackingAreas()
+        if let tracking { removeTrackingArea(tracking) }
+        let area = NSTrackingArea(rect: .zero, options: [.mouseEnteredAndExited, .activeAlways, .inVisibleRect], owner: self, userInfo: nil)
+        addTrackingArea(area); tracking = area
+    }
+    override func mouseEntered(with event: NSEvent) { setHovered(true) }
+    override func mouseExited(with event: NSEvent) { setHovered(false) }
+    func setHovered(_ value: Bool) {
+        if value { rowsByURL.values.forEach { $0.refreshStatus() } }
+        else { scheduleTuckAway(after: 0.45) }
+    }
+    @objc func toggleDetails() { setDetailsVisible(!isExpanded) }
+    func setDetailsVisible(_ visible: Bool) {
+        guard visible != isExpanded else { return }
+        isExpanded = visible
+        if visible { revealCat() } else { scheduleTuckAway(after: 0.45) }
+        onSizeChanged?(); updateFeedback(); needsLayout = true
+    }
+
+    func revealCat(animated: Bool = true) {
+        hideTask?.cancel()
+        setCatRevealed(true, animated: animated)
+    }
+    func tuckAwayIfIdle(animated: Bool = true) {
+        guard !incoming, !outgoing, !isExpanded else { return }
+        setCatRevealed(false, animated: animated)
+    }
+    private func scheduleTuckAway(after delay: Double) {
+        hideTask?.cancel()
+        guard isRevealed else { return }
+        hideTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .seconds(delay))
+            guard !Task.isCancelled, let self else { return }
+            self.tuckAwayIfIdle()
+        }
+    }
+    private func setCatRevealed(_ revealed: Bool, animated: Bool) {
+        guard revealed != isRevealed else { return }
+        isRevealed = revealed
+        cat.interactionEnabled = revealed
+        cat.setAccessibilityHidden(!revealed)
+        tail.isPresented = !revealed
+        tail.setAccessibilityHidden(revealed)
+        guard let catLayer = cat.layer, let tailLayer = tail.layer else { return }
+        let live = catLayer.presentation()
+        let oldOpacity = live?.opacity ?? catLayer.opacity
+        let offscreen: CGFloat = (petOnLeft ? -1 : 1) * ShelfLayout.collapsedWidth
+        let before = revealed && oldOpacity < 0.001
+            ? CATransform3DMakeTranslation(offscreen, 0, 0)
+            : live?.transform ?? catLayer.transform
+        let target = CATransform3DMakeTranslation(revealed ? 0 : offscreen, 0, 0)
+        CATransaction.begin(); CATransaction.setDisableActions(true)
+        catLayer.transform = target
+        catLayer.opacity = revealed ? 1 : 0
+        tailLayer.opacity = revealed ? 0 : 1
+        CATransaction.commit()
+        if animated, !cat.reduceMotion {
+            let slide = CABasicAnimation(keyPath: "transform")
+            slide.fromValue = NSValue(caTransform3D: before); slide.toValue = NSValue(caTransform3D: target)
+            let fade = CABasicAnimation(keyPath: "opacity")
+            fade.fromValue = oldOpacity; fade.toValue = revealed ? 1 : 0
+            let group = CAAnimationGroup()
+            group.animations = [slide, fade]; group.duration = revealed ? 0.24 : 0.20
+            group.timingFunction = CAMediaTimingFunction(name: revealed ? .easeOut : .easeIn)
+            catLayer.add(group, forKey: "peek")
+            let tailFade = CABasicAnimation(keyPath: "opacity")
+            tailFade.fromValue = revealed ? 1 : 0; tailFade.toValue = revealed ? 0 : 1; tailFade.duration = 0.18
+            tailLayer.add(tailFade, forKey: "peek")
+        } else { catLayer.removeAnimation(forKey: "peek"); tailLayer.removeAnimation(forKey: "peek") }
+        updateFeedback(); needsLayout = true
+    }
+    override func layout() {
+        super.layout()
+        let petX = petOnLeft ? 0 : bounds.width - ShelfLayout.collapsedWidth
+        let petY = bounds.height - ShelfLayout.collapsedHeight
+        cat.frame = NSRect(x: petX + 4, y: petY, width: 128, height: 140)
+        tail.frame = NSRect(x: petX + (petOnLeft ? -3 : 83), y: petY + 36, width: 56, height: 84)
+        card.isHidden = !isExpanded
+        thoughtTrail.isHidden = !isExpanded
+        let cardHeight = max(1, petY - ShelfLayout.thoughtGap)
+        card.frame = NSRect(x: 0, y: 0, width: bounds.width, height: cardHeight)
+        thoughtTrail.frame = NSRect(x: 0, y: cardHeight, width: bounds.width, height: ShelfLayout.thoughtGap)
+        thoughtTrail.catCenterX = cat.frame.midX
+        thoughtTrail.isOnLeft = petOnLeft
+        cardContent.frame = card.bounds
+        titleLabel.frame = NSRect(x: 31, y: 29, width: bounds.width - 91, height: 23)
+        closeButton.frame = NSRect(x: bounds.width - 57, y: 28, width: 26, height: 26)
+        clearButton.frame = NSRect(x: 28, y: cardHeight - 81, width: 50, height: 30)
+        scroll.frame = NSRect(x: 20, y: 70, width: bounds.width - 40, height: max(1, cardHeight - 156))
+        dragAllHandle.frame = NSRect(x: 87, y: cardHeight - 81, width: bounds.width - 117, height: 32)
+        footerLabel.frame = NSRect(x: 27, y: cardHeight - 40, width: bounds.width - 54, height: 18)
+        emptyLabel.frame = NSRect(x: 28, y: 73, width: bounds.width - 56, height: 52)
+        [scroll, dragAllHandle, clearButton].forEach { $0.isHidden = viewModel.isEmpty }
+        emptyLabel.isHidden = !viewModel.isEmpty
+        let width = max(1, scroll.contentSize.width)
+        document.frame = NSRect(x: 0, y: 0, width: width, height: max(scroll.contentSize.height, CGFloat(rowsByURL.count) * ShelfLayout.itemHeight))
+        for (index, item) in viewModel.allItems.enumerated() {
+            rowsByURL[item.url]?.frame = NSRect(x: 0, y: CGFloat(index) * ShelfLayout.itemHeight, width: width, height: ShelfLayout.itemHeight)
+        }
+    }
+    func reload() {
+        document.subviews.forEach { $0.removeFromSuperview() }; rowsByURL.removeAll()
+        for item in viewModel.allItems {
+            let row = ShelfItemRow(item: item)
+            row.onDragRequested = { [weak self] url, event in self?.beginDrag(for: [url], event: event) }
+            row.onRemoveRequested = { [weak self] url in
+                self?.viewModel.remove(url); self?.errorMessage = nil
+                if self?.viewModel.isEmpty == true { self?.isExpanded = false }
+                self?.reload()
+            }
+            document.addSubview(row); rowsByURL[item.url] = row
+        }
+        let count = viewModel.allItems.count
+        clearButton.isEnabled = count > 0
+        dragAllHandle.title = "全部帶走"
+        dragAllHandle.setAccessibilityLabel("Drag all \(count) files out of the cat")
+        onSizeChanged?(); updateFeedback(); needsLayout = true
+        if !isExpanded { scheduleTuckAway(after: 1.2) }
+    }
+    private func updateFeedback() {
+        let count = viewModel.allItems.count
+        titleLabel.stringValue = count == 0 ? "今天有什麼好吃的？" : "我幫你收著 · \(count) 份"
+        emptyLabel.stringValue = "把檔案拖過來，\n我幫你保管。"
+        let names = viewModel.allItems.prefix(8).map(\.displayName).joined(separator: "\n")
+        let hint = count == 0 ? "把檔案拖到尾巴旁，點一下看看貓咪的想法。"
+            : names + (count > 8 ? "\n另有 \(count - 8) 份…" : "") + "\n\n點一下查看清單，拖曳貓咪整批帶走。"
+        tail.toolTip = hint; cat.toolTip = hint
+        tail.setAccessibilityValue("保管 \(count) 份檔案")
+        footerLabel.stringValue = errorMessage ?? "拖曳取出，原始檔案留在原處。"
+        footerLabel.toolTip = errorMessage
+        effectiveAppearance.performAsCurrentDrawingAppearance {
+            let secondary = NSColor.labelColor.withAlphaComponent(0.75)
+            emptyLabel.textColor = secondary
+            footerLabel.textColor = errorMessage == nil ? secondary : .systemRed
+        }
+        cat.update(count: count, mood: incoming ? .hungry : outgoing ? .giving : .idle)
+        // Keep the native drop destination stable while the cat slides into view.
+        layer?.backgroundColor = incoming ? NSColor.white.withAlphaComponent(0.02).cgColor : NSColor.clear.cgColor
+        window?.invalidateCursorRects(for: cat)
+    }
+    override func viewDidChangeEffectiveAppearance() { super.viewDidChangeEffectiveAppearance(); updateFeedback() }
+    @objc func clearShelf() { viewModel.clear(); errorMessage = nil; isExpanded = false; reload(); scheduleTuckAway(after: 0.6) }
+    func operation(for pasteboard: NSPasteboard, mask: NSDragOperation) -> NSDragOperation {
+        guard mask.contains(.copy), !PasteboardFileURLReader().readFileURLs(from: pasteboard).isEmpty else { return [] }
+        return .copy
+    }
+    override func draggingEntered(_ sender: NSDraggingInfo) -> NSDragOperation {
+        guard !outgoing, (sender.draggingSource as? ShelfContentView) !== self else { return [] }
+        let op = operation(for: sender.draggingPasteboard, mask: sender.draggingSourceOperationMask)
+        incoming = op == .copy
+        if incoming { revealCat() }
+        updateFeedback(); return op
+    }
+    override func draggingUpdated(_ sender: NSDraggingInfo) -> NSDragOperation {
+        guard !outgoing, (sender.draggingSource as? ShelfContentView) !== self else { return [] }
+        return operation(for: sender.draggingPasteboard, mask: sender.draggingSourceOperationMask)
+    }
+    override func wantsPeriodicDraggingUpdates() -> Bool { false }
+    override func draggingExited(_ sender: NSDraggingInfo?) { finishIncoming() }
+    override func draggingEnded(_ sender: NSDraggingInfo?) { finishIncoming() }
+    override func concludeDragOperation(_ sender: NSDraggingInfo?) { finishIncoming() }
+    private func finishIncoming() {
+        incoming = false
+        if cat.mood != .chewing { updateFeedback(); scheduleTuckAway(after: 0.45) }
+    }
+    override func prepareForDragOperation(_ sender: NSDraggingInfo) -> Bool {
+        guard !outgoing, (sender.draggingSource as? ShelfContentView) !== self else { return false }
+        return operation(for: sender.draggingPasteboard, mask: sender.draggingSourceOperationMask) == .copy
+    }
+    override func performDragOperation(_ sender: NSDraggingInfo) -> Bool {
+        guard prepareForDragOperation(sender) else { finishIncoming(); return false }
+        return acceptFiles(from: sender.draggingPasteboard)
+    }
+    @discardableResult func acceptFiles(from pasteboard: NSPasteboard) -> Bool {
+        let urls = PasteboardFileURLReader().readFileURLs(from: pasteboard)
+        guard !urls.isEmpty else { return false }
+        revealCat()
+        let before = Set(viewModel.allItems.map(\.url))
+        viewModel.insert(urls); incoming = false
+        errorMessage = viewModel.model.refreshStaleStatus().values.contains(where: { $0 != .ok })
+            ? "Missing or unreadable reference — remove or re-drop" : nil
+        reload()
+        setDetailsVisible(true)
+        if let added = viewModel.allItems.first(where: { !before.contains($0.url) }) {
+            cat.chew(); cat.swallow(NSWorkspace.shared.icon(forFile: added.url.path))
+        }
+        return true
+    }
+    func draggingItems(for urls: [URL]) -> [NSDraggingItem] {
+        let wanted = viewModel.allItems.filter { urls.contains($0.url) }
+        guard !wanted.isEmpty else { return [] }
+        guard wanted.allSatisfy({ ShelfModel.defaultProbe($0.url) == .ok }) else {
+            errorMessage = "Missing or unreadable file — cannot drag"
+            setDetailsVisible(true); reload(); return []
+        }
+        errorMessage = nil
+        let mouth = convert(cat.mouthPoint, from: cat)
+        return wanted.enumerated().map { index, item in
+            let drag = NSDraggingItem(pasteboardWriter: item.url as NSURL)
+            drag.setDraggingFrame(NSRect(x: mouth.x - 16 + CGFloat(index % 3) * 3, y: mouth.y - 16, width: 32, height: 32),
+                                  contents: NSWorkspace.shared.icon(forFile: item.url.path))
+            return drag
+        }
+    }
+    func beginDrag(for url: URL, event: NSEvent) { beginDrag(for: [url], event: event) }
+    func beginDrag(for urls: [URL], event: NSEvent) {
+        guard event.type == .leftMouseDragged, window != nil, !outgoing else { return }
+        guard !viewModel.isEmpty else { return }
+        revealCat(animated: false)
+        layoutSubtreeIfNeeded()
+        let items = draggingItems(for: urls)
+        guard !items.isEmpty else { return }
+        outgoingURLs = viewModel.allItems.filter { urls.contains($0.url) }.map(\.url)
+        outgoing = true; updateFeedback()
+        if let startSession { startSession(items, event) }
+        else {
+            let session = beginDraggingSession(with: items, event: event, source: self)
+            session.draggingFormation = .pile
+            session.animatesToStartingPositionsOnCancelOrFail = true
+        }
+    }
+    static let sourceOperations: NSDragOperation = .copy
+    func draggingSession(_ session: NSDraggingSession, sourceOperationMaskFor context: NSDraggingContext) -> NSDragOperation { Self.sourceOperations }
+    func draggingSession(_ session: NSDraggingSession, endedAt point: NSPoint, operation: NSDragOperation) { completeDrag(operation: operation) }
+    func completeDrag(operation: NSDragOperation) {
+        // Only a destination's successful copy consumes shelf references. Cancel keeps them.
+        if operation.contains(.copy) { outgoingURLs.forEach { viewModel.remove($0) } }
+        outgoingURLs = []; outgoing = false
+        if viewModel.isEmpty { isExpanded = false }
+        reload()
+        scheduleTuckAway(after: 1.0)
+    }
+}
+private final class FlippedView: NSView { override var isFlipped: Bool { true } }
