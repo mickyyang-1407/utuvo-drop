@@ -52,3 +52,21 @@ python3 -m http.server 8765 --bind 127.0.0.1 --directory docs
 
 The PNG originals and WebP page images are checked in. Regeneration does not invoke an
 image model. See `docs/media/ARTWORK.md` for the hero prompt and image provenance.
+
+## Signed releases
+
+The published 1.0.0 download targets Apple Silicon and macOS 14+. To create a release,
+use your own Developer ID Application identity and an existing notarytool Keychain profile:
+
+```bash
+SIGNING_IDENTITY="Developer ID Application: Your Name (TEAMID)" \
+NOTARY_PROFILE="your-notary-profile" bash Scripts/package-release.sh
+```
+
+This uploads the app and DMG to Apple for notarization. The script enables Hardened Runtime,
+adds secure timestamps, verifies Accepted responses, staples both artifacts, checks Gatekeeper,
+and writes `build/distribution/<version>/SHA256SUMS.txt`. It does not publish to GitHub.
+Keep credentials in Keychain; never commit signing keys or notarization credentials.
+Before publishing, mount the resulting DMG, copy its app to an isolated temporary directory,
+and verify its signature, ticket and `--smoke-test` there. Preserve an existing release output
+before retrying. Release artifacts belong in GitHub Releases, not in Git history.

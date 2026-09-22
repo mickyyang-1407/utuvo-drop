@@ -8,6 +8,7 @@ root = Path(__file__).resolve().parent.parent
 site = root / ('presskit' if (root / 'presskit').exists() else 'docs')
 repo = 'https://github.com/mickyyang-1407/utuvo-drop'
 base = 'https://mickyyang-1407.github.io/utuvo-drop/'
+app_download = repo + '/releases/download/v1.0.0/UTUVO-Drop-1.0.0-arm64.dmg'
 
 copy = {
  'en': {
@@ -16,7 +17,7 @@ copy = {
   'skip':'Skip to content', 'meet':'Meet Drop', 'press':'Press kit', 'other':'繁體中文',
   'eyebrow':'A SMALL MAC APP. A VERY GOOD CAT.', 'heading':'A little cat.<br>A place for<br><em>your files.</em>',
   'intro':'Give your files a little place to wait. Drop keeps them handy until you are ready to take them somewhere else.',
-  'source':'Explore the source', 'see':'Meet your new helper', 'note':'macOS 14+ · Apple Silicon · MIT open source',
+  'source':'Download for Mac', 'see':'Explore the source', 'note':'v1.0.0 · macOS 14+ · Apple Silicon · Signed & notarized',
   'specs':[('SMALL BY NATURE','Native AppKit'),('YOURS TO MAKE','MIT licensed'),('STAYS WITH YOU','Local files, no network')],
   'inside':'HOW IT WORKS', 'insideTitle':'One small cat.<br>Three little moments.',
   'insideIntro':'A temporary place for files gathered from different folders. Your originals stay where they are. The cat just remembers how to find them.',
@@ -31,11 +32,11 @@ copy = {
   'download':'Download press kit', 'downloadNote':'PNG artwork + screenshots + bilingual fact sheet',
   'assets':[('Campaign artwork','Full-resolution PNG · Brand illustration'),('App screenshots','Light appearance · Original PNG'),('Product fact sheet','English + Traditional Chinese · Markdown')],
   'factsTitle':'The useful details', 'aboutTitle':'In a few words',
-  'facts':[('Product','UTUVO Drop'),('Made by','UTUVO'),('Category','Temporary file shelf / desktop pet'),('Platform','macOS 14+ · Apple Silicon'),('License','MIT'),('Availability','Source available · Build locally')],
+  'facts':[('Product','UTUVO Drop'),('Made by','UTUVO'),('Category','Temporary file shelf / desktop pet'),('Platform','macOS 14+ · Apple Silicon'),('License','MIT'),('Availability','v1.0.0 · Signed & notarized DMG')],
   'about':'UTUVO Drop turns a temporary file shelf into a small desktop companion. A cream-orange cat peeks out from the edge of the screen, collects file references and shows them in a thought bubble. When it is time to move on, drag individual files or the whole cat to your next app.',
   'about2':'Built with Swift and AppKit, without third-party runtime packages, accounts, analytics or network access. It is a little experiment in making an ordinary desktop task feel friendlier.',
   'faqTitle':'A few practical<br>things to know.',
-  'faq':[('Does the cat move or copy my originals?','No. Adding a file stores its local URL in memory. Removing it from Drop only removes that reference. A receiving app may copy or import the file when you drag it there.'),('Will it remember my files after quitting?','No. This is a temporary shelf. Its list is cleared when Drop quits or restarts. Your original files remain in their folders.'),('Can I download a ready-to-run app?','This release provides source code and build instructions. The local build uses an ad-hoc signature; a Developer ID-signed, notarized installer is not currently provided.'),('When does the cat come out?','When files reach the visible tail area, or when you click the tail. It does not watch every drag across your Mac. Missing or unreadable file references are marked in the list and cannot be dragged out.')],
+  'faq':[('Does the cat move or copy my originals?','No. Adding a file stores its local URL in memory. Removing it from Drop only removes that reference. A receiving app may copy or import the file when you drag it there.'),('Will it remember my files after quitting?','No. This is a temporary shelf. Its list is cleared when Drop quits or restarts. Your original files remain in their folders.'),('Can I download a ready-to-run app?','Yes. Download the DMG for Apple Silicon, drag UTUVO Drop into Applications, then open it from Applications. The release is Developer ID-signed and notarized by Apple. Use the cat icon in the menu bar to move the shelf edge or quit. Source code and local build instructions are also available.'),('When does the cat come out?','When files reach the visible tail area, or when you click the tail. It does not watch every drag across your Mac. Missing or unreadable file references are marked in the list and cannot be dragged out.')],
   'closingTitle':'A small idea, out in the open.', 'closingIntro':'Read the code, make your own changes, or help this little cat get better.',
   'closingButton':'Find Drop on GitHub', 'footer':'A small macOS experiment by UTUVO', 'issues':'Issues & feedback', 'build':'Build instructions',
  },
@@ -45,7 +46,7 @@ copy = {
   'skip':'跳到主要內容', 'meet':'認識小貓', 'press':'媒體素材', 'other':'English',
   'eyebrow':'A SMALL MAC APP. A VERY GOOD CAT.', 'heading':'檔案先交給牠。<br><em>等你來帶走。</em>',
   'intro':'還沒決定要放去哪裡的檔案，先給小貓保管。等你準備好，再一起帶去下一個地方。',
-  'source':'看看原始碼', 'see':'認識這位小幫手', 'note':'macOS 14+ · Apple Silicon · MIT 開源',
+  'source':'下載 Mac 版', 'see':'看看原始碼', 'note':'v1.0.0 · macOS 14+ · Apple Silicon · 已簽章與公證',
   'specs':[('SMALL BY NATURE','原生 AppKit'),('YOURS TO MAKE','MIT 開源授權'),('STAYS WITH YOU','檔案留本機，不連網')],
   'inside':'HOW IT WORKS', 'insideTitle':'一隻小貓，<br>三個小動作。',
   'insideIntro':'把不同資料夾裡的檔案，先收在同一個地方。原始檔案都留在原處，小貓只是記住它們在哪裡。',
@@ -60,11 +61,11 @@ copy = {
   'download':'下載媒體素材包', 'downloadNote':'PNG 主視覺＋介面截圖＋中英文產品資料',
   'assets':[('宣傳主視覺','原尺寸 PNG · 品牌插畫'),('App 實際截圖','淺色介面 · 原始 PNG'),('產品資料與介紹','繁體中文＋English · Markdown')],
   'factsTitle':'產品小檔案', 'aboutTitle':'幾句話認識 Drop',
-  'facts':[('名稱','UTUVO Drop'),('製作','UTUVO'),('類型','檔案暫放架／桌面小寵物'),('平台','macOS 14+ · Apple Silicon'),('授權','MIT'),('目前版本','原始碼已公開，可自行編譯')],
+  'facts':[('名稱','UTUVO Drop'),('製作','UTUVO'),('類型','檔案暫放架／桌面小寵物'),('平台','macOS 14+ · Apple Silicon'),('授權','MIT'),('目前版本','v1.0.0 · 已簽章、公證的 DMG')],
   'about':'UTUVO Drop 把檔案暫放架變成了一位桌面小夥伴。奶油橘色的小貓會從螢幕邊緣探出頭，幫你收好檔案參照，再把清單放進頭上的思考泡泡。要繼續工作時，可以逐一拖出，或拉著貓咪一次帶走。',
   'about2':'使用 Swift 與 AppKit 製作，沒有第三方執行套件，不需要帳號、沒有追蹤分析，也不連網。這是一個讓日常桌面操作多一點親切感的小實驗。',
   'faqTitle':'使用前，<br>你可能想知道。',
-  'faq':[('牠會搬動或複製我的原始檔嗎？','不會。放進小貓只是在記憶體中記住檔案位置，從 Drop 移除也只會拿掉參照。拖給其他 App 時，接收的 App 可能會複製或匯入檔案。'),('重新開啟後，檔案清單還會在嗎？','不會。Drop 是臨時暫放架，離開或重開 App 就會清空清單。你的原始檔案仍然留在原來的資料夾。'),('有可以直接安裝的版本嗎？','目前提供原始碼與編譯方式。本機編譯採用 ad-hoc 簽章，尚未提供 Developer ID 簽署及 Apple 公證的安裝包。'),('小貓什麼時候會跑出來？','把檔案拖到看得見的尾巴旁，或直接點尾巴，牠就會出來。Drop 不會監看整個 Mac 上的拖曳。找不到或無法讀取的檔案會在清單標記，並阻止拖出。')],
+  'faq':[('牠會搬動或複製我的原始檔嗎？','不會。放進小貓只是在記憶體中記住檔案位置，從 Drop 移除也只會拿掉參照。拖給其他 App 時，接收的 App 可能會複製或匯入檔案。'),('重新開啟後，檔案清單還會在嗎？','不會。Drop 是臨時暫放架，離開或重開 App 就會清空清單。你的原始檔案仍然留在原來的資料夾。'),('有可以直接安裝的版本嗎？','有，下載 Apple Silicon 版 DMG，把 UTUVO Drop 拖進 Applications，再從「應用程式」開啟。App 與 DMG 均已完成 Developer ID 簽章及 Apple 公證。點選選單列的貓咪圖示，可以換邊或結束 App；也能從 GitHub 取得原始碼自行編譯。'),('小貓什麼時候會跑出來？','把檔案拖到看得見的尾巴旁，或直接點尾巴，牠就會出來。Drop 不會監看整個 Mac 上的拖曳。找不到或無法讀取的檔案會在清單標記，並阻止拖出。')],
   'closingTitle':'小小的想法，開放一起做。', 'closingIntro':'看看程式碼，改成自己喜歡的樣子，或幫這隻小貓變得更好。',
   'closingButton':'到 GitHub 找小貓', 'footer':'UTUVO 的一個 macOS 小實驗', 'issues':'問題與建議', 'build':'編譯方式',
  }
@@ -93,7 +94,7 @@ for locale, c in copy.items():
 <link rel="icon" type="image/png" href="{img}favicon.png"><link rel="stylesheet" href="{img}style.css"><script src="{img}site.js" defer></script></head>
 <body class="{'zh' if zh else 'en'}"><a class="skip" href="#main">{e(c['skip'])}</a>
 <div class="wrap"><nav class="nav" aria-label="{'主要導覽' if zh else 'Main navigation'}"><a class="brand" href="{url}">UTUVO<span>/</span>DROP</a><div class="nav-links"><a class="desktop-link" href="#meet">{e(c['meet'])}</a><a href="#press">{e(c['press'])}</a><button class="theme-toggle" type="button" data-light="{c['light']}" data-dark="{c['dark']}" data-light-label="{c['lightLabel']}" data-dark-label="{c['darkLabel']}">{c['dark']}</button><a href="{other}" lang="{'en' if zh else 'zh-Hant'}">{e(c['other'])}</a></div></nav>
-<main id="main"><section class="hero" aria-labelledby="headline"><picture class="hero-art"><img src="{img}hero-1280.webp" srcset="{img}hero-640.webp 640w, {img}hero-1280.webp 1280w, {img}hero-1672.webp 1672w" sizes="(max-width:700px) 540px, (max-width:1296px) 94vw, 1200px" alt="{'奶油橘色的 Drop 小貓抱著一份紙張，身旁放著小資料夾；品牌插畫。' if zh else 'Brand illustration of the cream-orange Drop cat holding a paper document beside a small folder.'}" width="1672" height="941" fetchpriority="high"></picture><div class="hero-copy"><div class="eyebrow">{c['eyebrow']}</div><h1 id="headline">{c['heading']}</h1><p class="intro">{e(c['intro'])}</p><div class="actions"><a class="button" href="{repo}">{e(c['source'])} <span aria-hidden="true">↗</span></a><a class="text-link" href="#meet">{e(c['see'])} ↓</a></div><p class="hero-note">{e(c['note'])}</p></div></section>
+<main id="main"><section class="hero" aria-labelledby="headline"><picture class="hero-art"><img src="{img}hero-1280.webp" srcset="{img}hero-640.webp 640w, {img}hero-1280.webp 1280w, {img}hero-1672.webp 1672w" sizes="(max-width:700px) 540px, (max-width:1296px) 94vw, 1200px" alt="{'奶油橘色的 Drop 小貓抱著一份紙張，身旁放著小資料夾；品牌插畫。' if zh else 'Brand illustration of the cream-orange Drop cat holding a paper document beside a small folder.'}" width="1672" height="941" fetchpriority="high"></picture><div class="hero-copy"><div class="eyebrow">{c['eyebrow']}</div><h1 id="headline">{c['heading']}</h1><p class="intro">{e(c['intro'])}</p><div class="actions"><a class="button" href="{app_download}">{e(c['source'])} <span aria-hidden="true">↓</span></a><a class="text-link" href="{repo}">{e(c['see'])} ↗</a></div><p class="hero-note">{e(c['note'])}</p></div></section>
 <div class="specs">{specs}</div>
 <section class="section" id="meet"><div class="section-heading"><div><div class="eyebrow">{c['inside']}</div><h2>{c['insideTitle']}</h2></div><p>{e(c['insideIntro'])}</p></div><div class="workflow"><figure class="app-figure"><div class="app-stage"><img data-app-screenshot src="{img}drop-light.webp" data-light="{img}drop-light.webp" data-dark="{img}drop-dark.webp" data-light-alt="{e(c['screenAlt'])}" data-dark-alt="{e(c['darkAlt'])}" alt="{e(c['screenAlt'])}" width="680" height="1068" loading="lazy"></div><div class="modes" role="group" aria-label="{'外觀' if zh else 'Appearance'}"><button type="button" data-mode="light" aria-pressed="true">{c['light']}</button><button type="button" data-mode="dark" aria-pressed="false">{c['dark']}</button></div><figcaption>{e(c['caption'])}</figcaption></figure><div><ol class="steps">{steps}</ol><p class="aside-note">{e(c['workflowNote'])}</p></div></div></section>
 <section class="section" id="press"><div class="press"><div class="press-copy"><div class="eyebrow">{c['pressEyebrow']}</div><h2>{c['pressTitle']}</h2><p>{e(c['pressIntro'])}</p><a class="button" href="{prefix}UTUVO-Drop-Press-Kit.zip" download>{e(c['download'])} <span aria-hidden="true">↓</span></a><p class="aside-note">{e(c['downloadNote'])}</p></div><ul class="asset-list">{assets}</ul></div><div class="facts"><div><h3>{c['factsTitle']}</h3><table class="fact-table"><tbody>{facts}</tbody></table></div><div><h3>{c['aboutTitle']}</h3><p class="about-copy">{e(c['about'])}</p><p class="about-copy">{e(c['about2'])}</p></div></div></section>
@@ -112,7 +113,8 @@ Category: macOS temporary file shelf / desktop pet
 Platform: macOS 14 or later; Apple Silicon build
 Technology: Swift / AppKit; no third-party runtime dependencies
 License: MIT
-Availability: Source code available. Build locally; no signed/notarized installer is provided.
+Availability: v1.0.0 DMG for Apple Silicon; Developer ID-signed and Apple-notarized. MIT source available.
+Download: https://github.com/mickyyang-1407/utuvo-drop/releases/download/v1.0.0/UTUVO-Drop-1.0.0-arm64.dmg
 Repository: https://github.com/mickyyang-1407/utuvo-drop
 Presskit: https://mickyyang-1407.github.io/utuvo-drop/
 Feedback: https://github.com/mickyyang-1407/utuvo-drop/issues
@@ -140,7 +142,7 @@ UTUVO Drop 把檔案暫放架變成了一位桌面小夥伴。奶油橘色的小
 - File URLs only; text snippets and web links are not shelf items.
 - macOS and filesystem permissions still apply. Missing/unreadable references cannot be dragged out.
 - The receiver determines whether to copy or import a dragged file.
-- The local app uses an ad-hoc signature. No Developer ID or notarization claim is made.
+- The published DMG and app are Developer ID-signed, Apple-notarized and stapled. Local source builds use ad-hoc signing unless release signing is configured.
 
 ## Media notes
 

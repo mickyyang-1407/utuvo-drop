@@ -22,6 +22,16 @@ watch it come out to collect them, then drag them to your next app.
 
 Actual app screenshot with sample files. Interface labels currently use Traditional Chinese.
 
+## Download
+
+[Download UTUVO Drop 1.0.0 for Apple Silicon](https://github.com/mickyyang-1407/utuvo-drop/releases/download/v1.0.0/UTUVO-Drop-1.0.0-arm64.dmg)
+
+Requires macOS 14 or later. The app and DMG are Developer ID-signed, notarized by Apple
+and stapled. Open the DMG, drag UTUVO Drop into Applications, and launch it there.
+Use the cat icon in the menu bar to move the shelf edge or quit.
+
+[Release notes and SHA-256 checksum](https://github.com/mickyyang-1407/utuvo-drop/releases/tag/v1.0.0)
+
 ## Build locally
 
 macOS 14 or later, Apple Silicon, and a Swift 5.9+ toolchain with the macOS SDK.
@@ -34,8 +44,8 @@ bash Scripts/build.sh
 open "build/UTUVO Drop.app"
 ```
 
-The build is locally ad-hoc signed. A Developer ID-signed, notarized installer is not
-currently provided. See [development notes](docs/DEVELOPMENT.md) for tests and opt-in previews.
+Local source builds are ad-hoc signed. The downloadable release uses Developer ID signing
+and Apple notarization. See [development notes](docs/DEVELOPMENT.md) for builds and release packaging.
 
 ## Files stay yours
 

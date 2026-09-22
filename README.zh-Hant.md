@@ -21,6 +21,16 @@ Drop 是螢幕邊緣的一隻小貓，也是你的 macOS 檔案暫放架。
 
 ![Drop 實際介面，使用示範檔案](docs/assets/drop-light.webp)
 
+## 下載安裝
+
+[下載 UTUVO Drop 1.0.0（Apple Silicon）](https://github.com/mickyyang-1407/utuvo-drop/releases/download/v1.0.0/UTUVO-Drop-1.0.0-arm64.dmg)
+
+需要 macOS 14 以上。App 與 DMG 均已完成 Developer ID 簽章、Apple 公證與票證附加。
+打開 DMG，把 UTUVO Drop 拖進 Applications，再從「應用程式」開啟。
+點選選單列的貓咪圖示，可以換邊或結束 App。
+
+[版本說明與 SHA-256 校驗碼](https://github.com/mickyyang-1407/utuvo-drop/releases/tag/v1.0.0)
+
 ## 自行編譯
 
 需要 macOS 14 以上、Apple Silicon，以及含 macOS SDK 的 Swift 5.9+ 工具鏈。
@@ -33,7 +43,7 @@ bash Scripts/build.sh
 open "build/UTUVO Drop.app"
 ```
 
-目前提供原始碼，本機編譯採用 ad-hoc 簽章；尚未提供 Developer ID 簽署及 Apple 公證的安裝包。
+本機編譯採用 ad-hoc 簽章；上方提供的正式 DMG 已完成 Developer ID 簽署及 Apple 公證。
 
 ## 關於你的檔案
 
