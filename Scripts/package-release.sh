@@ -42,12 +42,14 @@ UTUVO Drop  •  macOS 14+ / Apple Silicon
 
 Drag UTUVO Drop into Applications, then open it from Applications.
 A little tail appears at the edge of your screen. Drop files onto it to begin.
-Use the cat icon in the menu bar to move the shelf edge or quit.
+Drag the tail or the bubble move handle to reposition; Option-drag the cat also works.
+Right-click the cat or use its menu-bar icon for Language, Reset Position and Quit.
 The temporary file list is cleared when the app quits; your original files stay in place.
 
 把 UTUVO Drop 拖進 Applications，再從「應用程式」開啟。
 螢幕邊緣會出現尾巴，把檔案拖過去就能開始。
-點選選單列的貓咪圖示，可以換邊或結束 App。
+拖尾巴、泡泡上的移動把手，或 Option＋拖貓咪，就能自由移動。
+右鍵點貓咪或選單列圖示，可切換語言、重設位置或結束 App。
 離開 App 會清空暫放清單，原始檔案不受影響。
 TXT
 hdiutil create -quiet -fs HFS+ -volname 'UTUVO Drop' -srcfolder "$WORK/content" -format UDZO -imagekey zlib-level=9 "$OUTPUT/$STEM.dmg"

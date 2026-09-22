@@ -3,6 +3,7 @@ import UTUVODropCore
 
 final class ShelfItemRow: NSView {
     let item: ShelfItem
+    var strings: DropStrings
     let iconView = NSImageView()
     let nameLabel = NSTextField(labelWithString: "")
     let metaLabel = NSTextField(labelWithString: "")
@@ -12,8 +13,9 @@ final class ShelfItemRow: NSView {
     var onRemoveRequested: ((URL) -> Void)?
     private var mouseDownLocation: NSPoint?
 
-    init(item: ShelfItem) {
+    init(item: ShelfItem, strings: DropStrings = DropStrings()) {
         self.item = item
+        self.strings = strings
         super.init(frame: NSRect(x: 0, y: 0, width: 280, height: ShelfLayout.itemHeight))
         iconView.image = NSWorkspace.shared.icon(forFile: item.url.path)
         iconView.imageScaling = .scaleProportionallyUpOrDown
@@ -26,10 +28,10 @@ final class ShelfItemRow: NSView {
         removeButton.image = NSImage(systemSymbolName: "xmark", accessibilityDescription: nil)
         removeButton.symbolConfiguration = .init(pointSize: 10, weight: .medium)
         removeButton.contentTintColor = .secondaryLabelColor
-        removeButton.toolTip = "Remove from shelf. Keep the original file."
+        removeButton.toolTip = strings.removeHelp
         removeButton.target = self
         removeButton.action = #selector(removeReference)
-        removeButton.setAccessibilityLabel("Remove \(item.displayName) reference")
+        removeButton.setAccessibilityLabel(strings.text("移除 \(item.displayName) 的參照", "Remove \(item.displayName) reference"))
         [iconView, nameLabel, metaLabel, removeButton].forEach { addSubview($0) }
         toolTip = item.url.path
         refreshStatus()
@@ -55,14 +57,14 @@ final class ShelfItemRow: NSView {
         case .ok:
             let values = try? item.url.resourceValues(forKeys: [.isDirectoryKey])
             let parent = item.url.deletingLastPathComponent().lastPathComponent
-            if values?.isDirectory == true { metaLabel.stringValue = parent + " · 資料夾" }
+            if values?.isDirectory == true { metaLabel.stringValue = parent + " · " + strings.folder }
             else if let size = ShelfModel.byteSizeIfRegularFile(item.url) {
                 metaLabel.stringValue = parent + " · " + ByteCountFormatter.string(fromByteCount: size, countStyle: .file)
             } else { metaLabel.stringValue = parent }
         case .missing:
-            metaLabel.stringValue = "Missing — remove or re-drop"
+            metaLabel.stringValue = strings.missing
         case .unreadable:
-            metaLabel.stringValue = "Unreadable — cannot drag"
+            metaLabel.stringValue = strings.unreadable
         }
         updateMetaColor()
     }

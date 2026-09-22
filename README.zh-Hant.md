@@ -23,13 +23,13 @@ Drop 是螢幕邊緣的一隻小貓，也是你的 macOS 檔案暫放架。
 
 ## 下載安裝
 
-[下載 UTUVO Drop 1.0.0（Apple Silicon）](https://github.com/mickyyang-1407/utuvo-drop/releases/download/v1.0.0/UTUVO-Drop-1.0.0-arm64.dmg)
+[下載 UTUVO Drop 1.1.0（Apple Silicon）](https://github.com/mickyyang-1407/utuvo-drop/releases/download/v1.1.0/UTUVO-Drop-1.1.0-arm64.dmg)
 
 需要 macOS 14 以上。App 與 DMG 均已完成 Developer ID 簽章、Apple 公證與票證附加。
 打開 DMG，把 UTUVO Drop 拖進 Applications，再從「應用程式」開啟。
-點選選單列的貓咪圖示，可以換邊或結束 App。
+拖尾巴、泡泡上的移動把手，或按住 Option 拖貓咪，就能自由定位。右鍵點小貓或選單列的貓咪圖示，可選繁體中文、English 或跟隨系統。位置與語言都會記住。
 
-[版本說明與 SHA-256 校驗碼](https://github.com/mickyyang-1407/utuvo-drop/releases/tag/v1.0.0)
+[版本說明與 SHA-256 校驗碼](https://github.com/mickyyang-1407/utuvo-drop/releases/tag/v1.1.0)
 
 ## 自行編譯
 
@@ -50,7 +50,7 @@ open "build/UTUVO Drop.app"
 Drop 只在記憶體裡記住檔案位置，不另外保存內容。移除、清空或退出都不會移動或刪除原始檔案。
 拖給其他 App 時，接收的 App 可能會複製或匯入它。
 
-- 暫放清單不會跨次保存，離開或重開 App 就會清空。
+- 暫放清單不會跨次保存，離開或重開 App 就會清空；位置與語言偏好會保留。
 - 不需要帳號，沒有分析追蹤、不連網，也不監看剪貼簿。
 - 不監看全域拖曳，檔案要碰到尾巴所在區域才會觸發。
 - 只接受檔案 URL，不接受文字片段或網頁連結。

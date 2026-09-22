@@ -5,6 +5,14 @@ import UTUVODropCore
 /// A pet-sized native drop destination with an on-demand file list.
 final class ShelfContentView: NSView, NSDraggingSource {
     let viewModel: ShelfViewModel
+    private(set) var strings: DropStrings
+    let moveHandle = ShelfMoveHandle()
+    var petOffsetX: CGFloat?
+    var bubbleAbove = true
+    var isMoving = false
+    var onMove: ((NSPoint) -> Void)?
+    var onMoveEnded: (() -> Void)?
+    var contextMenu: (() -> NSMenu?)?
     let cat = CatPetView(frame: .zero)
     let tail = TailPeekView(frame: .zero)
     private let card = ThoughtBubbleView(frame: .zero)
@@ -23,7 +31,15 @@ final class ShelfContentView: NSView, NSDraggingSource {
     private(set) var isRevealed = false
     private(set) var incoming = false
     private(set) var outgoing = false
-    private(set) var errorMessage: String?
+    private enum ReferenceError { case invalidDrop, invalidDrag }
+    private var referenceError: ReferenceError?
+    var errorMessage: String? {
+        switch referenceError {
+        case .invalidDrop: strings.invalidDrop
+        case .invalidDrag: strings.invalidDrag
+        case nil: nil
+        }
+    }
     private(set) var outgoingURLs: [URL] = []
     private var tracking: NSTrackingArea?
     private var hideTask: Task<Void, Never>?
@@ -33,8 +49,9 @@ final class ShelfContentView: NSView, NSDraggingSource {
     }
     var startSession: (([NSDraggingItem], NSEvent) -> Void)?
 
-    init(viewModel: ShelfViewModel) {
+    init(viewModel: ShelfViewModel, strings: DropStrings = DropStrings()) {
         self.viewModel = viewModel
+        self.strings = strings
         super.init(frame: NSRect(x: 0, y: 0, width: ShelfLayout.collapsedWidth, height: ShelfLayout.collapsedHeight))
         wantsLayer = true
         autoresizingMask = [.width, .height]
@@ -63,14 +80,25 @@ final class ShelfContentView: NSView, NSDraggingSource {
         }
         dragAllHandle.onDragRequested = cat.onDragRequested
         tail.onClick = cat.onClick
-        tail.onDragRequested = cat.onDragRequested
+        let move: (NSPoint) -> Void = { [weak self] delta in
+            self?.hideTask?.cancel(); self?.onMove?(delta)
+        }
+        let end: () -> Void = { [weak self] in
+            self?.onMoveEnded?()
+            if self?.isExpanded == false { self?.scheduleTuckAway(after: 0.6) }
+        }
+        tail.onMove = move; tail.onMoveEnded = end
+        cat.onMove = move; cat.onMoveEnded = end
+        moveHandle.onMove = move; moveHandle.onMoveEnded = end
+        cat.contextMenu = { [weak self] in self?.contextMenu?() }
+        tail.contextMenu = cat.contextMenu
         cat.layer?.opacity = 0
         cat.interactionEnabled = false
         cat.setAccessibilityHidden(true)
-        [titleLabel, closeButton, clearButton, emptyLabel, scroll, footerLabel, dragAllHandle].forEach { cardContent.addSubview($0) }
+        [moveHandle, titleLabel, closeButton, clearButton, emptyLabel, scroll, footerLabel, dragAllHandle].forEach { cardContent.addSubview($0) }
         [card, thoughtTrail, cat, tail].forEach { addSubview($0) }
         registerForDraggedTypes([.fileURL]); setAccessibilityLabel("UTUVO Drop file cat")
-        reload()
+        apply(strings: strings)
     }
     required init?(coder: NSCoder) { fatalError("not used") }
     override var isFlipped: Bool { true }
@@ -100,7 +128,7 @@ final class ShelfContentView: NSView, NSDraggingSource {
         setCatRevealed(true, animated: animated)
     }
     func tuckAwayIfIdle(animated: Bool = true) {
-        guard !incoming, !outgoing, !isExpanded else { return }
+        guard !incoming, !outgoing, !isExpanded, !isMoving else { return }
         setCatRevealed(false, animated: animated)
     }
     private func scheduleTuckAway(after delay: Double) {
@@ -149,19 +177,21 @@ final class ShelfContentView: NSView, NSDraggingSource {
     }
     override func layout() {
         super.layout()
-        let petX = petOnLeft ? 0 : bounds.width - ShelfLayout.collapsedWidth
-        let petY = bounds.height - ShelfLayout.collapsedHeight
+        let petX = petOffsetX ?? (petOnLeft ? 0 : bounds.width - ShelfLayout.collapsedWidth)
+        let petY = bubbleAbove ? bounds.height - ShelfLayout.collapsedHeight : 0
         cat.frame = NSRect(x: petX + 4, y: petY, width: 128, height: 140)
         tail.frame = NSRect(x: petX + (petOnLeft ? -3 : 83), y: petY + 36, width: 56, height: 84)
         card.isHidden = !isExpanded
         thoughtTrail.isHidden = !isExpanded
-        let cardHeight = max(1, petY - ShelfLayout.thoughtGap)
-        card.frame = NSRect(x: 0, y: 0, width: bounds.width, height: cardHeight)
-        thoughtTrail.frame = NSRect(x: 0, y: cardHeight, width: bounds.width, height: ShelfLayout.thoughtGap)
+        let cardHeight = max(1, bounds.height - ShelfLayout.collapsedHeight - ShelfLayout.thoughtGap)
+        card.frame = NSRect(x: 0, y: bubbleAbove ? 0 : ShelfLayout.collapsedHeight + ShelfLayout.thoughtGap, width: bounds.width, height: cardHeight)
+        thoughtTrail.frame = NSRect(x: 0, y: bubbleAbove ? cardHeight : ShelfLayout.collapsedHeight, width: bounds.width, height: ShelfLayout.thoughtGap)
+        thoughtTrail.bubbleAbove = bubbleAbove
         thoughtTrail.catCenterX = cat.frame.midX
         thoughtTrail.isOnLeft = petOnLeft
         cardContent.frame = card.bounds
-        titleLabel.frame = NSRect(x: 31, y: 29, width: bounds.width - 91, height: 23)
+        moveHandle.frame = NSRect(x: 26, y: 28, width: 26, height: 26)
+        titleLabel.frame = NSRect(x: 58, y: 29, width: bounds.width - 119, height: 23)
         closeButton.frame = NSRect(x: bounds.width - 57, y: 28, width: 26, height: 26)
         clearButton.frame = NSRect(x: 28, y: cardHeight - 81, width: 50, height: 30)
         scroll.frame = NSRect(x: 20, y: 70, width: bounds.width - 40, height: max(1, cardHeight - 156))
@@ -179,10 +209,10 @@ final class ShelfContentView: NSView, NSDraggingSource {
     func reload() {
         document.subviews.forEach { $0.removeFromSuperview() }; rowsByURL.removeAll()
         for item in viewModel.allItems {
-            let row = ShelfItemRow(item: item)
+            let row = ShelfItemRow(item: item, strings: strings)
             row.onDragRequested = { [weak self] url, event in self?.beginDrag(for: [url], event: event) }
             row.onRemoveRequested = { [weak self] url in
-                self?.viewModel.remove(url); self?.errorMessage = nil
+                self?.viewModel.remove(url); self?.referenceError = nil
                 if self?.viewModel.isEmpty == true { self?.isExpanded = false }
                 self?.reload()
             }
@@ -190,22 +220,25 @@ final class ShelfContentView: NSView, NSDraggingSource {
         }
         let count = viewModel.allItems.count
         clearButton.isEnabled = count > 0
-        dragAllHandle.title = "全部帶走"
-        dragAllHandle.setAccessibilityLabel("Drag all \(count) files out of the cat")
+        dragAllHandle.title = strings.dragAll
+        dragAllHandle.setAccessibilityLabel(strings.dragAll + " · " + strings.count(count))
         onSizeChanged?(); updateFeedback(); needsLayout = true
         if !isExpanded { scheduleTuckAway(after: 1.2) }
     }
     private func updateFeedback() {
         let count = viewModel.allItems.count
-        titleLabel.stringValue = count == 0 ? "今天有什麼好吃的？" : "我幫你收著 · \(count) 份"
-        emptyLabel.stringValue = "把檔案拖過來，\n我幫你保管。"
+        titleLabel.stringValue = strings.title(count)
+        titleLabel.toolTip = strings.title(count)
+        emptyLabel.stringValue = strings.empty
         let names = viewModel.allItems.prefix(8).map(\.displayName).joined(separator: "\n")
-        let hint = count == 0 ? "把檔案拖到尾巴旁，點一下看看貓咪的想法。"
-            : names + (count > 8 ? "\n另有 \(count - 8) 份…" : "") + "\n\n點一下查看清單，拖曳貓咪整批帶走。"
-        tail.toolTip = hint; cat.toolTip = hint
-        tail.setAccessibilityValue("保管 \(count) 份檔案")
-        footerLabel.stringValue = errorMessage ?? "拖曳取出，原始檔案留在原處。"
-        footerLabel.toolTip = errorMessage
+        let more = count > 8 ? strings.text("\n另有 \(count - 8) 份…", "\nAnd \(count - 8) more…") : ""
+        let hint = count == 0 ? strings.text("把檔案拖過來，點一下查看清單。", "Drop files here; click to see the list.")
+            : names + more + "\n\n" + strings.text("點一下查看清單，拖曳貓咪整批帶走。", "Click to see files; drag the cat to take them all.")
+        tail.toolTip = hint + "\n" + strings.movementHelp
+        cat.toolTip = hint + "\n" + strings.movementHelp
+        tail.setAccessibilityValue(strings.count(count))
+        footerLabel.stringValue = errorMessage ?? strings.footer
+        footerLabel.toolTip = footerLabel.stringValue
         effectiveAppearance.performAsCurrentDrawingAppearance {
             let secondary = NSColor.labelColor.withAlphaComponent(0.75)
             emptyLabel.textColor = secondary
@@ -216,8 +249,26 @@ final class ShelfContentView: NSView, NSDraggingSource {
         layer?.backgroundColor = incoming ? NSColor.white.withAlphaComponent(0.02).cgColor : NSColor.clear.cgColor
         window?.invalidateCursorRects(for: cat)
     }
+    func apply(strings: DropStrings) {
+        self.strings = strings
+        cat.strings = strings
+        titleLabel.lineBreakMode = .byTruncatingTail
+        clearButton.title = strings.clear
+        clearButton.toolTip = strings.clearHelp
+        clearButton.setAccessibilityLabel(strings.clearHelp)
+        closeButton.toolTip = strings.close
+        closeButton.setAccessibilityLabel(strings.close)
+        moveHandle.toolTip = strings.movementHelp
+        moveHandle.setAccessibilityLabel(strings.move)
+        tail.setAccessibilityLabel(strings.tailLabel)
+        cat.setAccessibilityLabel(strings.catLabel)
+        dragAllHandle.toolTip = strings.dragAllHelp
+        setAccessibilityLabel(strings.catLabel)
+        reload()
+    }
+    override func menu(for event: NSEvent) -> NSMenu? { contextMenu?() }
     override func viewDidChangeEffectiveAppearance() { super.viewDidChangeEffectiveAppearance(); updateFeedback() }
-    @objc func clearShelf() { viewModel.clear(); errorMessage = nil; isExpanded = false; reload(); scheduleTuckAway(after: 0.6) }
+    @objc func clearShelf() { viewModel.clear(); referenceError = nil; isExpanded = false; reload(); scheduleTuckAway(after: 0.6) }
     func operation(for pasteboard: NSPasteboard, mask: NSDragOperation) -> NSDragOperation {
         guard mask.contains(.copy), !PasteboardFileURLReader().readFileURLs(from: pasteboard).isEmpty else { return [] }
         return .copy
@@ -255,8 +306,7 @@ final class ShelfContentView: NSView, NSDraggingSource {
         revealCat()
         let before = Set(viewModel.allItems.map(\.url))
         viewModel.insert(urls); incoming = false
-        errorMessage = viewModel.model.refreshStaleStatus().values.contains(where: { $0 != .ok })
-            ? "Missing or unreadable reference — remove or re-drop" : nil
+        referenceError = viewModel.model.refreshStaleStatus().values.contains(where: { $0 != .ok }) ? .invalidDrop : nil
         reload()
         setDetailsVisible(true)
         if let added = viewModel.allItems.first(where: { !before.contains($0.url) }) {
@@ -268,10 +318,10 @@ final class ShelfContentView: NSView, NSDraggingSource {
         let wanted = viewModel.allItems.filter { urls.contains($0.url) }
         guard !wanted.isEmpty else { return [] }
         guard wanted.allSatisfy({ ShelfModel.defaultProbe($0.url) == .ok }) else {
-            errorMessage = "Missing or unreadable file — cannot drag"
+            referenceError = .invalidDrag
             setDetailsVisible(true); reload(); return []
         }
-        errorMessage = nil
+        referenceError = nil
         let mouth = convert(cat.mouthPoint, from: cat)
         return wanted.enumerated().map { index, item in
             let drag = NSDraggingItem(pasteboardWriter: item.url as NSURL)

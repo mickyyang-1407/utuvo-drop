@@ -8,7 +8,7 @@ root = Path(__file__).resolve().parent.parent
 site = root / ('presskit' if (root / 'presskit').exists() else 'docs')
 repo = 'https://github.com/mickyyang-1407/utuvo-drop'
 base = 'https://mickyyang-1407.github.io/utuvo-drop/'
-app_download = repo + '/releases/download/v1.0.0/UTUVO-Drop-1.0.0-arm64.dmg'
+app_download = repo + '/releases/download/v1.1.0/UTUVO-Drop-1.1.0-arm64.dmg'
 
 copy = {
  'en': {
@@ -17,26 +17,26 @@ copy = {
   'skip':'Skip to content', 'meet':'Meet Drop', 'press':'Press kit', 'other':'繁體中文',
   'eyebrow':'A SMALL MAC APP. A VERY GOOD CAT.', 'heading':'A little cat.<br>A place for<br><em>your files.</em>',
   'intro':'Give your files a little place to wait. Drop keeps them handy until you are ready to take them somewhere else.',
-  'source':'Download for Mac', 'see':'Explore the source', 'note':'v1.0.0 · macOS 14+ · Apple Silicon · Signed & notarized',
+  'source':'Download for Mac', 'see':'Explore the source', 'note':'v1.1.0 · macOS 14+ · Apple Silicon · Signed & notarized',
   'specs':[('SMALL BY NATURE','Native AppKit'),('YOURS TO MAKE','MIT licensed'),('STAYS WITH YOU','Local files, no network')],
   'inside':'HOW IT WORKS', 'insideTitle':'One small cat.<br>Three little moments.',
   'insideIntro':'A temporary place for files gathered from different folders. Your originals stay where they are. The cat just remembers how to find them.',
   'screenAlt':'UTUVO Drop in light mode: a cat with a thought bubble listing three sample files, their folders and sizes.',
   'darkAlt':'UTUVO Drop in dark mode: a warm charcoal thought bubble listing three sample files above the cat.',
-  'caption':'Actual app screenshot · Sample files · Current interface labels are in Traditional Chinese.',
+  'caption':'Actual app screenshot · Sample files · Traditional Chinese shown · English also available.',
   'light':'Light', 'dark':'Dark', 'lightLabel':'Switch page and app screenshot to light appearance', 'darkLabel':'Switch page and app screenshot to dark appearance',
-  'steps':[('A tail at the edge.','Most of the time, your helper stays tucked away. Bring files to its tail and it comes out to meet them.'),('A mouthful of files.','Drop one file or a handful. The cat opens its mouth, swallows the icons and grows a little rounder.'),('A thought worth opening.','After a drop, the thought bubble opens with your files. Drag a row or the whole cat to an app that accepts file drops.')],
+  'steps':[('A tail at the edge.','Most of the time, your helper stays tucked away. Drag its tail to a comfortable spot, then bring files over to meet it.'),('A mouthful of files.','Drop one file or a handful. The cat opens its mouth, swallows the icons and grows a little rounder.'),('A thought worth opening.','After a drop, the thought bubble opens with your files. Drag a row or the whole cat to an app that accepts file drops.')],
   'workflowNote':'A completed copy handoff clears those references from the shelf. Cancel a drag and they stay. Original files are never moved or deleted.',
   'pressEyebrow':'FOR STORIES, POSTS & LITTLE INTRODUCTIONS', 'pressTitle':'Everything you need<br>to meet the cat.',
   'pressIntro':'A ready-to-use press pack: campaign artwork, actual interface screenshots, the app icon and short descriptions in English and Traditional Chinese.',
   'download':'Download press kit', 'downloadNote':'PNG artwork + screenshots + bilingual fact sheet',
   'assets':[('Campaign artwork','Full-resolution PNG · Brand illustration'),('App screenshots','Light appearance · Original PNG'),('Product fact sheet','English + Traditional Chinese · Markdown')],
   'factsTitle':'The useful details', 'aboutTitle':'In a few words',
-  'facts':[('Product','UTUVO Drop'),('Made by','UTUVO'),('Category','Temporary file shelf / desktop pet'),('Platform','macOS 14+ · Apple Silicon'),('License','MIT'),('Availability','v1.0.0 · Signed & notarized DMG')],
+  'facts':[('Product','UTUVO Drop'),('Made by','UTUVO'),('Category','Temporary file shelf / desktop pet'),('Platform','macOS 14+ · Apple Silicon'),('License','MIT'),('Availability','v1.1.0 · Signed & notarized DMG')],
   'about':'UTUVO Drop turns a temporary file shelf into a small desktop companion. A cream-orange cat peeks out from the edge of the screen, collects file references and shows them in a thought bubble. When it is time to move on, drag individual files or the whole cat to your next app.',
   'about2':'Built with Swift and AppKit, without third-party runtime packages, accounts, analytics or network access. It is a little experiment in making an ordinary desktop task feel friendlier.',
   'faqTitle':'A few practical<br>things to know.',
-  'faq':[('Does the cat move or copy my originals?','No. Adding a file stores its local URL in memory. Removing it from Drop only removes that reference. A receiving app may copy or import the file when you drag it there.'),('Will it remember my files after quitting?','No. This is a temporary shelf. Its list is cleared when Drop quits or restarts. Your original files remain in their folders.'),('Can I download a ready-to-run app?','Yes. Download the DMG for Apple Silicon, drag UTUVO Drop into Applications, then open it from Applications. The release is Developer ID-signed and notarized by Apple. Use the cat icon in the menu bar to move the shelf edge or quit. Source code and local build instructions are also available.'),('When does the cat come out?','When files reach the visible tail area, or when you click the tail. It does not watch every drag across your Mac. Missing or unreadable file references are marked in the list and cannot be dragged out.')],
+  'faq':[('Does the cat move or copy my originals?','No. Adding a file stores its local URL in memory. Removing it from Drop only removes that reference. A receiving app may copy or import the file when you drag it there.'),('Will it remember my files after quitting?','No. This is a temporary shelf. Its list is cleared when Drop quits or restarts. Your original files remain in their folders.'),('Can I download a ready-to-run app?','Yes. Download the DMG for Apple Silicon, drag UTUVO Drop into Applications, then open it from Applications. The release is Developer ID-signed and notarized by Apple. Drag the tail or the thought bubble’s move handle to reposition the cat. Option-drag the cat also works. Right-click it or use the menu-bar cat icon to choose English, Traditional Chinese or Follow System. Position and language are remembered. Source code and local build instructions are also available.'),('When does the cat come out?','When files reach the visible tail area, or when you click the tail. It does not watch every drag across your Mac. Missing or unreadable file references are marked in the list and cannot be dragged out.')],
   'closingTitle':'A small idea, out in the open.', 'closingIntro':'Read the code, make your own changes, or help this little cat get better.',
   'closingButton':'Find Drop on GitHub', 'footer':'A small macOS experiment by UTUVO', 'issues':'Issues & feedback', 'build':'Build instructions',
  },
@@ -46,22 +46,22 @@ copy = {
   'skip':'跳到主要內容', 'meet':'認識小貓', 'press':'媒體素材', 'other':'English',
   'eyebrow':'A SMALL MAC APP. A VERY GOOD CAT.', 'heading':'檔案先交給牠。<br><em>等你來帶走。</em>',
   'intro':'還沒決定要放去哪裡的檔案，先給小貓保管。等你準備好，再一起帶去下一個地方。',
-  'source':'下載 Mac 版', 'see':'看看原始碼', 'note':'v1.0.0 · macOS 14+ · Apple Silicon · 已簽章與公證',
+  'source':'下載 Mac 版', 'see':'看看原始碼', 'note':'v1.1.0 · macOS 14+ · Apple Silicon · 已簽章與公證',
   'specs':[('SMALL BY NATURE','原生 AppKit'),('YOURS TO MAKE','MIT 開源授權'),('STAYS WITH YOU','檔案留本機，不連網')],
   'inside':'HOW IT WORKS', 'insideTitle':'一隻小貓，<br>三個小動作。',
   'insideIntro':'把不同資料夾裡的檔案，先收在同一個地方。原始檔案都留在原處，小貓只是記住它們在哪裡。',
   'screenAlt':'UTUVO Drop 淺色實際畫面：貓咪頭上的思考泡泡列出三份示範檔案、來源資料夾與大小。',
   'darkAlt':'UTUVO Drop 深色實際畫面：貓咪上方的暖灰思考泡泡列出三份示範檔案。',
-  'caption':'實際 App 截圖 · 示範檔案 · 目前介面以繁體中文顯示。',
+  'caption':'實際 App 截圖 · 示範檔案 · 繁體中文示範 · 也支援 English。',
   'light':'淺色', 'dark':'深色', 'lightLabel':'切換頁面與 App 截圖為淺色外觀', 'darkLabel':'切換頁面與 App 截圖為深色外觀',
-  'steps':[('先露出一截尾巴。','平常牠躲在螢幕邊緣，輕輕搖尾巴。把檔案拖過去，牠就會跑出來迎接。'),('啊——吃進去了。','一份或好幾份都可以。小貓會張嘴吃下檔案圖示，肚子也跟著鼓起來。'),('心裡惦記著你的檔案。','吃完後，思考泡泡自動打開。看看牠收了什麼，再拖出單一檔案，或拉著貓咪整批帶走。')],
+  'steps':[('先露出一截尾巴。','平常牠躲著輕輕搖尾巴。拖尾巴就能自由換位置；把檔案拖過去，牠會跑出來迎接。'),('啊——吃進去了。','一份或好幾份都可以。小貓會張嘴吃下檔案圖示，肚子也跟著鼓起來。'),('心裡惦記著你的檔案。','吃完後，思考泡泡自動打開。看看牠收了什麼，再拖出單一檔案，或拉著貓咪整批帶走。')],
   'workflowNote':'接收端回報複製成功，才從暫放架移除這次交出的參照；取消拖曳就繼續保留。原始檔案不會被移動或刪除。',
   'pressEyebrow':'FOR STORIES, POSTS & LITTLE INTRODUCTIONS', 'pressTitle':'把這隻小貓，<br>介紹給大家。',
   'pressIntro':'整理好的媒體素材包：主視覺、真實介面截圖、App 圖示，以及中英文產品介紹，下載就能使用。',
   'download':'下載媒體素材包', 'downloadNote':'PNG 主視覺＋介面截圖＋中英文產品資料',
   'assets':[('宣傳主視覺','原尺寸 PNG · 品牌插畫'),('App 實際截圖','淺色介面 · 原始 PNG'),('產品資料與介紹','繁體中文＋English · Markdown')],
   'factsTitle':'產品小檔案', 'aboutTitle':'幾句話認識 Drop',
-  'facts':[('名稱','UTUVO Drop'),('製作','UTUVO'),('類型','檔案暫放架／桌面小寵物'),('平台','macOS 14+ · Apple Silicon'),('授權','MIT'),('目前版本','v1.0.0 · 已簽章、公證的 DMG')],
+  'facts':[('名稱','UTUVO Drop'),('製作','UTUVO'),('類型','檔案暫放架／桌面小寵物'),('平台','macOS 14+ · Apple Silicon'),('授權','MIT'),('目前版本','v1.1.0 · 已簽章、公證的 DMG')],
   'about':'UTUVO Drop 把檔案暫放架變成了一位桌面小夥伴。奶油橘色的小貓會從螢幕邊緣探出頭，幫你收好檔案參照，再把清單放進頭上的思考泡泡。要繼續工作時，可以逐一拖出，或拉著貓咪一次帶走。',
   'about2':'使用 Swift 與 AppKit 製作，沒有第三方執行套件，不需要帳號、沒有追蹤分析，也不連網。這是一個讓日常桌面操作多一點親切感的小實驗。',
   'faqTitle':'使用前，<br>你可能想知道。',
@@ -113,8 +113,8 @@ Category: macOS temporary file shelf / desktop pet
 Platform: macOS 14 or later; Apple Silicon build
 Technology: Swift / AppKit; no third-party runtime dependencies
 License: MIT
-Availability: v1.0.0 DMG for Apple Silicon; Developer ID-signed and Apple-notarized. MIT source available.
-Download: https://github.com/mickyyang-1407/utuvo-drop/releases/download/v1.0.0/UTUVO-Drop-1.0.0-arm64.dmg
+Availability: v1.1.0 DMG for Apple Silicon; Developer ID-signed and Apple-notarized. MIT source available.
+Download: https://github.com/mickyyang-1407/utuvo-drop/releases/download/v1.1.0/UTUVO-Drop-1.1.0-arm64.dmg
 Repository: https://github.com/mickyyang-1407/utuvo-drop
 Presskit: https://mickyyang-1407.github.io/utuvo-drop/
 Feedback: https://github.com/mickyyang-1407/utuvo-drop/issues
@@ -137,7 +137,8 @@ UTUVO Drop 把檔案暫放架變成了一位桌面小夥伴。奶油橘色的小
 
 ## Practical notes
 
-- Interface labels currently use Traditional Chinese.
+- Interface supports English and Traditional Chinese, with a Follow System option.
+- Drag the tail or move handle to reposition; Option-drag the cat also moves it. Position and language preferences are saved.
 - No accounts, analytics, network access or global drag monitoring.
 - File URLs only; text snippets and web links are not shelf items.
 - macOS and filesystem permissions still apply. Missing/unreadable references cannot be dragged out.

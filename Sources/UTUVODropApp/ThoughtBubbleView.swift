@@ -59,13 +59,14 @@ final class ThoughtBubbleView: NSView {
 final class ThoughtTrailView: NSView {
     var catCenterX: CGFloat = 0 { didSet { needsDisplay = true } }
     var isOnLeft = false { didSet { needsDisplay = true } }
+    var bubbleAbove = true { didSet { needsDisplay = true } }
     override var isFlipped: Bool { true }
     override func hitTest(_ point: NSPoint) -> NSView? { nil }
     override func draw(_ dirtyRect: NSRect) {
         let colors = ThoughtBubbleView.colors(for: effectiveAppearance)
         let direction: CGFloat = isOnLeft ? 1 : -1
         for (offset, y, size): (CGFloat, CGFloat, CGFloat) in [(42, 1, 18), (24, 25, 12), (10, 42, 6)] {
-            let circle = NSBezierPath(ovalIn: NSRect(x: catCenterX + direction * offset - size / 2, y: y, width: size, height: size))
+            let circle = NSBezierPath(ovalIn: NSRect(x: catCenterX + direction * offset - size / 2, y: bubbleAbove ? y : bounds.height - y - size, width: size, height: size))
             colors.fill.setFill(); circle.fill()
             colors.stroke.setStroke(); circle.lineWidth = 1; circle.stroke()
         }

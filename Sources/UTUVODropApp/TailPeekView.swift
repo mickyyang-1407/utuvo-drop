@@ -5,14 +5,16 @@ import QuartzCore
 final class TailPeekView: NSView {
     private let tailLayer = CALayer()
     private var downLocation: NSPoint?
-    private var dragged = false
+    private var moveGesture = ShelfMoveGesture()
     private var displayObserver: NSObjectProtocol?
     private(set) var isWagging = false
     var isOnLeft = false { didSet { if oldValue != isOnLeft { needsLayout = true } } }
     var isPresented = true { didSet { updateWag() } }
     var reduceMotionOverride: Bool? { didSet { updateWag() } }
     var onClick: (() -> Void)?
-    var onDragRequested: ((NSEvent) -> Void)?
+    var onMove: ((NSPoint) -> Void)?
+    var onMoveEnded: (() -> Void)?
+    var contextMenu: (() -> NSMenu?)?
 
     override init(frame: NSRect) {
         super.init(frame: frame)
@@ -64,16 +66,19 @@ final class TailPeekView: NSView {
         wag.calculationMode = .cubic
         tailLayer.add(wag, forKey: "wag")
     }
-    override func resetCursorRects() { addCursorRect(bounds, cursor: .pointingHand) }
-    override func mouseDown(with event: NSEvent) { downLocation = event.locationInWindow; dragged = false }
+    override func resetCursorRects() { addCursorRect(bounds, cursor: .openHand) }
+    override func menu(for event: NSEvent) -> NSMenu? { contextMenu?() }
+    override func mouseDown(with event: NSEvent) {
+        downLocation = event.locationInWindow
+        moveGesture.begin(at: ShelfMoveGesture.point(event, in: self))
+    }
     override func mouseDragged(with event: NSEvent) {
-        guard !dragged, let start = downLocation,
-              hypot(event.locationInWindow.x - start.x, event.locationInWindow.y - start.y) >= 4 else { return }
-        dragged = true; onDragRequested?(event)
+        if let delta = moveGesture.delta(to: ShelfMoveGesture.point(event, in: self)) { onMove?(delta) }
     }
     override func mouseUp(with event: NSEvent) {
-        defer { downLocation = nil; dragged = false }
-        if !dragged, downLocation != nil, bounds.contains(convert(event.locationInWindow, from: nil)) { onClick?() }
+        if moveGesture.moved { onMoveEnded?() }
+        else if downLocation != nil, bounds.contains(convert(event.locationInWindow, from: nil)) { onClick?() }
+        downLocation = nil; moveGesture.end()
     }
     override func accessibilityPerformPress() -> Bool { onClick?(); return true }
     override func keyDown(with event: NSEvent) {

@@ -19,11 +19,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        let controller = ShelfWindowController()
+        let args = CommandLine.arguments
+        let isFixture = isSmoke || args.contains("--preview") || args.contains("--render-preview")
+        let settings = DropSettings(defaults: isFixture ? nil : .standard)
+        if isFixture, let index = args.firstIndex(of: "--language"), args.count > index + 1,
+           let language = DropLanguage(rawValue: args[index + 1]) { settings.language = language }
+        let controller = ShelfWindowController(settings: settings)
+        controller.content.contextMenu = { [weak self] in self?.makeMenu() }
+        if isFixture { controller.window?.title = "UTUVO Drop — Preview" }
         shelfController = controller
         controller.showShelf()
         installStatusItem()
-        let args = CommandLine.arguments
         if args.contains("--preview") || args.contains("--render-preview") {
             do {
                 let harness = try PreviewHarness()
@@ -77,6 +83,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             defer { pb.releaseGlobally() }
             try check(pb.writeObjects(files.map { $0 as NSURL }), "owned file URL pasteboard")
             try check(content.acceptFiles(from: pb) && controller.viewModel.allItems.count == 3, "seeded shelf count=3")
+            controller.changeLanguage(.english)
+            try check(content.clearButton.title == "Clear" && controller.viewModel.allItems.count == 3, "English switch preserves files")
+            controller.changeLanguage(.traditionalChinese)
+            try check(content.clearButton.title == "清空" && controller.viewModel.allItems.count == 3, "Chinese switch preserves files")
+            let previousOrigin = controller.petOrigin
+            controller.move(by: NSPoint(x: -60, y: 0)); controller.finishMoving()
+            try check(controller.petOrigin.x == previousOrigin.x - 60 && controller.settings.savedOrigin == controller.petOrigin,
+                      "free position saved without changing files")
             panel.contentView?.layoutSubtreeIfNeeded()
             try check(content.isExpanded && panel.frame.width > ShelfLayout.collapsedWidth, "accepted drop automatically opens thought bubble")
             if let visible = panel.screen?.visibleFrame {
@@ -132,18 +146,53 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func installStatusItem() {
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         item.button?.image = NSImage(systemSymbolName: "cat.fill", accessibilityDescription: "UTUVO Drop")
-        item.button?.toolTip = "UTUVO Drop — file references only"
-        let menu = NSMenu()
-        for (title, action) in [("Show Shelf", #selector(showShelf)), ("Clear Shelf", #selector(clearShelf)),
-                                 ("Move Shelf Edge", #selector(cycleEdge)), ("Quit UTUVO Drop", #selector(quit))] {
-            let entry = NSMenuItem(title: title, action: action, keyEquivalent: title.hasPrefix("Quit") ? "q" : "")
-            entry.target = self
-            menu.addItem(entry)
-        }
-        item.menu = menu
         statusItem = item
+        refreshMenu()
     }
-    @objc private func showShelf() { shelfController?.showShelf() }
+    private func refreshMenu() {
+        statusItem?.button?.toolTip = "UTUVO Drop · " + (shelfController?.settings.strings.movementHelp ?? "")
+        statusItem?.menu = makeMenu()
+    }
+    private func makeMenu() -> NSMenu {
+        let strings = shelfController?.settings.strings ?? DropStrings()
+        let menu = NSMenu()
+        for (title, action) in [(strings.text("查看檔案", "Show files"), #selector(showShelf)),
+                                 (strings.text("清空暫放清單", "Clear shelf"), #selector(clearShelf)),
+                                 (strings.text("移到另一側", "Move to other edge"), #selector(cycleEdge)),
+                                 (strings.text("重設位置", "Reset position"), #selector(resetPosition))] {
+            let entry = NSMenuItem(title: title, action: action, keyEquivalent: "")
+            entry.target = self; menu.addItem(entry)
+        }
+        menu.addItem(.separator())
+        let languages = NSMenu()
+        for language in DropLanguage.allCases {
+            let title: String
+            switch language {
+            case .system: title = strings.text("跟隨系統", "Follow System")
+            case .traditionalChinese: title = "繁體中文"
+            case .english: title = "English"
+            }
+            let entry = NSMenuItem(title: title, action: #selector(changeLanguage(_:)), keyEquivalent: "")
+            entry.target = self; entry.representedObject = language.rawValue
+            entry.state = shelfController?.settings.language == language ? .on : .off
+            languages.addItem(entry)
+        }
+        let languageItem = NSMenuItem(title: strings.text("語言 / Language", "Language / 語言"), action: nil, keyEquivalent: "")
+        languageItem.submenu = languages; menu.addItem(languageItem)
+        let hint = NSMenuItem(title: strings.text("拖尾巴移動 · ⌥ 拖貓咪移動", "Move: drag tail / ⌥-drag cat"), action: nil, keyEquivalent: "")
+        hint.isEnabled = false; menu.addItem(hint)
+        menu.addItem(.separator())
+        let quit = NSMenuItem(title: strings.text("結束 UTUVO Drop", "Quit UTUVO Drop"), action: #selector(quit), keyEquivalent: "q")
+        quit.target = self; menu.addItem(quit)
+        return menu
+    }
+    @objc private func changeLanguage(_ sender: NSMenuItem) {
+        guard let value = sender.representedObject as? String, let language = DropLanguage(rawValue: value) else { return }
+        shelfController?.changeLanguage(language)
+        refreshMenu()
+    }
+    @objc private func resetPosition() { shelfController?.resetPosition() }
+    @objc private func showShelf() { shelfController?.showShelf(); shelfController?.content.setDetailsVisible(true) }
     @objc private func clearShelf() { shelfController?.content.clearShelf() }
     @objc private func cycleEdge() { shelfController?.cycleEdge() }
     @objc private func quit() { NSApp.terminate(nil) }

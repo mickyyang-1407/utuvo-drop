@@ -20,17 +20,17 @@ watch it come out to collect them, then drag them to your next app.
 
 ![Actual Drop interface with synthetic sample files](docs/assets/drop-light.webp)
 
-Actual app screenshot with sample files. Interface labels currently use Traditional Chinese.
+Actual app screenshot with sample files. Interface supports English and Traditional Chinese, with a Follow System option.
 
 ## Download
 
-[Download UTUVO Drop 1.0.0 for Apple Silicon](https://github.com/mickyyang-1407/utuvo-drop/releases/download/v1.0.0/UTUVO-Drop-1.0.0-arm64.dmg)
+[Download UTUVO Drop 1.1.0 for Apple Silicon](https://github.com/mickyyang-1407/utuvo-drop/releases/download/v1.1.0/UTUVO-Drop-1.1.0-arm64.dmg)
 
 Requires macOS 14 or later. The app and DMG are Developer ID-signed, notarized by Apple
 and stapled. Open the DMG, drag UTUVO Drop into Applications, and launch it there.
-Use the cat icon in the menu bar to move the shelf edge or quit.
+Drag the tail or the thought bubble’s move handle to reposition the cat. Option-drag the cat also works. Right-click it or use the menu-bar cat icon to choose English, Traditional Chinese or Follow System. Position and language are remembered.
 
-[Release notes and SHA-256 checksum](https://github.com/mickyyang-1407/utuvo-drop/releases/tag/v1.0.0)
+[Release notes and SHA-256 checksum](https://github.com/mickyyang-1407/utuvo-drop/releases/tag/v1.1.0)
 
 ## Build locally
 
@@ -53,7 +53,7 @@ Drop stores **file references in memory**, not file copies. Removing an entry, c
 the shelf or quitting Drop does not move or delete the original file. The receiving app
 decides whether to copy or import a file you drag into it.
 
-- The shelf is temporary: quitting or restarting clears its list.
+- The shelf is temporary: quitting or restarting clears its list. Position and language preferences are saved.
 - No account, analytics, network access or clipboard monitoring.
 - No global drag detection: files must reach the visible tail area.
 - File URLs only; text snippets and web links are not accepted.

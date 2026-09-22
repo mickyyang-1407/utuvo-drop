@@ -61,6 +61,16 @@ import AVFAudio
         window.appearance = NSAppearance(named: .aqua)
         controller.content.setDetailsVisible(true)
         try await capture(controller, to: output.appendingPathComponent("drop-cat-empty-list.png"))
+        // Exercise the floating placement near the top edge with owned fixture files.
+        seed(controller)
+        controller.content.setDetailsVisible(true)
+        if let visible = controller.window?.screen?.visibleFrame {
+            let target = NSPoint(x: visible.midX - ShelfLayout.collapsedWidth / 2,
+                                 y: visible.maxY - ShelfLayout.collapsedHeight - 8)
+            controller.move(by: NSPoint(x: target.x - controller.petOrigin.x, y: target.y - controller.petOrigin.y))
+            controller.finishMoving()
+            try await capture(controller, to: output.appendingPathComponent("drop-cat-top.png"))
+        }
     }
 
     private func capture(_ controller: ShelfWindowController, to url: URL) async throws {
@@ -74,7 +84,8 @@ import AVFAudio
         backdrop.backgroundColor = dark
             ? NSColor(calibratedWhite: 0.10, alpha: 1)
             : NSColor(calibratedWhite: 0.94, alpha: 1)
-        backdrop.level = NSWindow.Level(rawValue: window.level.rawValue - 1)
+        // Cover other floating windows too; bring our preview above this owned backdrop below.
+        backdrop.level = window.level
         backdrop.orderFrontRegardless()
         defer { backdrop.orderOut(nil) }
         window.contentView?.layoutSubtreeIfNeeded()

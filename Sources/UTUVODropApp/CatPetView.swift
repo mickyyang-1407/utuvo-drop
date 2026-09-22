@@ -11,6 +11,12 @@ final class CatPetView: NSView {
     private let floorShadow = CALayer()
     private var mouseDownLocation: NSPoint?
     private var didDrag = false
+    private var moving = false
+    private var moveGesture = ShelfMoveGesture()
+    var strings = DropStrings()
+    var onMove: ((NSPoint) -> Void)?
+    var onMoveEnded: (() -> Void)?
+    var contextMenu: (() -> NSMenu?)?
     private var chewTask: Task<Void, Never>?
     private(set) var mood: Mood = .idle
     private(set) var fileCount = 0
@@ -97,7 +103,7 @@ final class CatPetView: NSView {
             spring.duration = 0.32
             body.add(spring, forKey: "belly")
         } else if reduceMotion || !animated { body.removeAllAnimations() }
-        setAccessibilityValue(count == 0 ? "No files" : "\(count) files. Drag to take them out.")
+        setAccessibilityValue(strings.count(count))
     }
 
     func chew() {
@@ -141,19 +147,27 @@ final class CatPetView: NSView {
         CATransaction.commit()
     }
 
-    override func resetCursorRects() { addCursorRect(bounds, cursor: fileCount > 0 ? .openHand : .pointingHand) }
+    override func resetCursorRects() { addCursorRect(bounds, cursor: .openHand) }
+    override func menu(for event: NSEvent) -> NSMenu? { contextMenu?() }
     override func mouseDown(with event: NSEvent) {
         mouseDownLocation = event.locationInWindow
         didDrag = false
+        moving = fileCount == 0 || event.modifierFlags.contains(.option)
+        moveGesture.begin(at: ShelfMoveGesture.point(event, in: self))
     }
     override func mouseDragged(with event: NSEvent) {
+        if moving {
+            if let delta = moveGesture.delta(to: ShelfMoveGesture.point(event, in: self)) { didDrag = true; onMove?(delta) }
+            return
+        }
         guard fileCount > 0, !didDrag, let start = mouseDownLocation,
               hypot(event.locationInWindow.x - start.x, event.locationInWindow.y - start.y) >= 4 else { return }
         didDrag = true
         onDragRequested?(event)
     }
     override func mouseUp(with event: NSEvent) {
-        defer { mouseDownLocation = nil; didDrag = false }
+        defer { mouseDownLocation = nil; didDrag = false; moving = false; moveGesture.end() }
+        if moving && moveGesture.moved { onMoveEnded?() }
         if !didDrag, mouseDownLocation != nil, bounds.contains(convert(event.locationInWindow, from: nil)) { onClick?() }
     }
     override func accessibilityPerformPress() -> Bool { onClick?(); return true }

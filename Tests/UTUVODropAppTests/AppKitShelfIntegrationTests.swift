@@ -198,6 +198,7 @@ final class AppKitShelfIntegrationTests: XCTestCase {
     // 8. Stale reference blocks drag-out and is surfaced on the row + title.
     func testStaleReferenceBlocksDragOutAndSurfacesError() throws {
         let wc = ShelfWindowController(viewModel: ShelfViewModel())
+        wc.changeLanguage(.english)
         let ghost = try makeFile("ghost.txt")
         wc.viewModel.insert([ghost])
         wc.reload()

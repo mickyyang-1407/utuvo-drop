@@ -6,8 +6,8 @@ Category: macOS temporary file shelf / desktop pet
 Platform: macOS 14 or later; Apple Silicon build
 Technology: Swift / AppKit; no third-party runtime dependencies
 License: MIT
-Availability: v1.0.0 DMG for Apple Silicon; Developer ID-signed and Apple-notarized. MIT source available.
-Download: https://github.com/mickyyang-1407/utuvo-drop/releases/download/v1.0.0/UTUVO-Drop-1.0.0-arm64.dmg
+Availability: v1.1.0 DMG for Apple Silicon; Developer ID-signed and Apple-notarized. MIT source available.
+Download: https://github.com/mickyyang-1407/utuvo-drop/releases/download/v1.1.0/UTUVO-Drop-1.1.0-arm64.dmg
 Repository: https://github.com/mickyyang-1407/utuvo-drop
 Presskit: https://mickyyang-1407.github.io/utuvo-drop/
 Feedback: https://github.com/mickyyang-1407/utuvo-drop/issues
@@ -30,7 +30,8 @@ UTUVO Drop 把檔案暫放架變成了一位桌面小夥伴。奶油橘色的小
 
 ## Practical notes
 
-- Interface labels currently use Traditional Chinese.
+- Interface supports English and Traditional Chinese, with a Follow System option.
+- Drag the tail or move handle to reposition; Option-drag the cat also moves it. Position and language preferences are saved.
 - No accounts, analytics, network access or global drag monitoring.
 - File URLs only; text snippets and web links are not shelf items.
 - macOS and filesystem permissions still apply. Missing/unreadable references cannot be dragged out.

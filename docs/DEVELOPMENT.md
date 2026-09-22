@@ -29,7 +29,8 @@ system settings for tests. `swift test` also includes the Foundation model tests
 "build/UTUVO Drop.app/Contents/MacOS/UTUVODrop" --render-preview build/screenshots
 ```
 
-These are opt-in development modes with synthetic files, cleaned up on normal exit.
+These are opt-in development modes with synthetic files and in-memory preferences, cleaned up on normal exit.
+Use `--language en` or `--language zh-Hant` before `--render-preview <directory>` to choose a preview locale.
 The render command uses an owned neutral backdrop and captures the app; it requires
 Screen Recording permission. Normal app use does not capture screenshots or require it.
 
@@ -55,7 +56,7 @@ image model. See `docs/media/ARTWORK.md` for the hero prompt and image provenanc
 
 ## Signed releases
 
-The published 1.0.0 download targets Apple Silicon and macOS 14+. To create a release,
+The published 1.1.0 download targets Apple Silicon and macOS 14+. To create a release,
 use your own Developer ID Application identity and an existing notarytool Keychain profile:
 
 ```bash
